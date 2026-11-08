@@ -166,6 +166,48 @@
     revealItems.forEach(function (el) { el.classList.add('is-visible'); });
   }
 
+  /* 关于我们：数据滚动增长 */
+  var statNumbers = Array.prototype.slice.call(document.querySelectorAll('.stat strong[data-count]'));
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (statNumbers.length && !reduceMotion) {
+    var statsCard = document.querySelector('.stats-card');
+
+    function animateStat(el) {
+      var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+      var duration = target > 100 ? 1400 : 900;
+      var startTime = null;
+      function step(now) {
+        if (!startTime) startTime = now;
+        var progress = Math.min(1, (now - startTime) / duration);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = String(Math.round(target * eased));
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    statNumbers.forEach(function (el) { el.textContent = '0'; });
+
+    if ('IntersectionObserver' in window && statsCard) {
+      var statObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              statNumbers.forEach(function (el, index) {
+                setTimeout(function () { animateStat(el); }, index * 120);
+              });
+              statObserver.disconnect();
+            }
+          });
+        },
+        { threshold: 0.35 }
+      );
+      statObserver.observe(statsCard);
+    } else {
+      statNumbers.forEach(animateStat);
+    }
+  }
+
   /* 主站专属滚动条（隐藏浏览器原生滚动条） */
   var pageBar = document.getElementById('pageScrollbar');
   var pageThumb = document.getElementById('pageScrollThumb');
