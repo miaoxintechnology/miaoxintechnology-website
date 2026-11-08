@@ -624,6 +624,17 @@ h2 {
 }
 
 /* ---------- 作品 ---------- */
+.works-quote {
+  margin: 0 0 clamp(2rem, 4vw, 3rem);
+  padding: 24px 20px;
+  border-top: 1px dashed #d9c9f7;
+  border-bottom: 1px dashed #d9c9f7;
+  color: var(--purple-700);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+}
 .works-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
