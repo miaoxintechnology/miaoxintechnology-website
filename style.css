@@ -699,7 +699,7 @@ h2 {
 
 .contact-panel {
   display: grid;
-  grid-template-columns: 1.1fr .9fr;
+  grid-template-columns: 1fr;
   gap: clamp(2rem, 5vw, 4rem);
   padding: clamp(32px, 5vw, 60px);
   border-radius: 28px;
