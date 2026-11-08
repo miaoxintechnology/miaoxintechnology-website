@@ -481,6 +481,14 @@ h2 {
 .about-copy h2 { margin-bottom: 22px; }
 .about-copy p { color: var(--body); }
 .about-copy p + p { margin-top: 14px; }
+.about-ai {
+  padding: 14px 18px;
+  border-left: 3px solid var(--purple-500);
+  border-radius: 0 12px 12px 0;
+  background: #faf7ff;
+  color: #4c4463;
+}
+.about-ai strong { color: var(--purple-700); }
 
 .stats-card {
   padding: 6px 28px;
