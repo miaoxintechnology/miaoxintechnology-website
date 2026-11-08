@@ -31,6 +31,23 @@
     });
   }
 
+  /* 首屏高度：确保进入页面时只露出首屏，不露出下一部分 */
+  var hero = document.querySelector('.hero');
+  var siteHeader = document.querySelector('.site-header');
+  function fitHero() {
+    if (!hero || !siteHeader) return;
+    var headerH = siteHeader.getBoundingClientRect().height;
+    var target = Math.round(window.innerHeight - headerH);
+    hero.style.minHeight = Math.max(0, target) + 'px';
+  }
+  fitHero();
+  window.addEventListener('resize', fitHero);
+  window.addEventListener('orientationchange', fitHero);
+  window.addEventListener('load', fitHero);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitHero);
+  }
+
   /* 首屏代码卡片：代码 / 运行模拟 两个标签切换 */
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.code-tab'));
   var panes = tabs.map(function (tab) {

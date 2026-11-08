@@ -200,6 +200,8 @@ blockquote { margin: 0; }
 .hero {
   position: relative;
   overflow: hidden;
+  min-height: 100vh;
+  min-height: 100svh;
   padding: clamp(64px, 9vw, 104px) 0 clamp(130px, 14vw, 180px);
   background: linear-gradient(165deg, #4c1d95 0%, #5b21b6 45%, #6d28d9 100%);
   color: #fff;
