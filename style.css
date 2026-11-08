@@ -270,6 +270,29 @@ blockquote { margin: 0; }
   line-height: 1.7;
 }
 
+.hero-scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  color: rgba(255, 255, 255, .5);
+  font-size: .8rem;
+  letter-spacing: .02em;
+}
+.hero-scroll-hint svg {
+  flex: none;
+  opacity: .8;
+  animation: hero-hint-bob 1.8s ease-in-out infinite;
+}
+@keyframes hero-hint-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-hint svg { animation: none; }
+}
+
 /* 代码卡片 */
 .code-card {
   min-width: 0;
