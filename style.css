@@ -487,6 +487,8 @@ h2 {
   border: 1px solid #eadffb;
   border-radius: 22px;
   background: var(--lavender);
+  font-family: "Noto Sans SC", var(--font);
+  font-weight: 500;
 }
 .stat {
   padding: 20px 0;
@@ -502,7 +504,7 @@ h2 {
   line-height: 1;
   letter-spacing: -.02em;
 }
-.stat span { color: #6b647f; font-size: .9rem; }
+.stat span { color: #6b647f; font-size: .9rem; font-weight: 600; }
 
 /* ---------- 名字的由来 ---------- */
 .naming { background: var(--lavender); }
