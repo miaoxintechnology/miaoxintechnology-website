@@ -175,7 +175,7 @@
     function animateStat(el) {
       var target = parseInt(el.getAttribute('data-count'), 10) || 0;
       var suffix = el.getAttribute('data-suffix') || '';
-      var duration = target > 100 ? 1400 : 900;
+      var duration = parseInt(el.getAttribute('data-duration'), 10) || (target > 100 ? 1400 : 900);
       var startTime = null;
       function step(now) {
         if (!startTime) startTime = now;
