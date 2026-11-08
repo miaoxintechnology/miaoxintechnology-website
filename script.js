@@ -174,19 +174,22 @@
 
     function animateStat(el) {
       var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+      var suffix = el.getAttribute('data-suffix') || '';
       var duration = target > 100 ? 1400 : 900;
       var startTime = null;
       function step(now) {
         if (!startTime) startTime = now;
         var progress = Math.min(1, (now - startTime) / duration);
         var eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = String(Math.round(target * eased));
+        el.textContent = String(Math.round(target * eased)) + suffix;
         if (progress < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
 
-    statNumbers.forEach(function (el) { el.textContent = '0'; });
+    statNumbers.forEach(function (el) {
+      el.textContent = '0' + (el.getAttribute('data-suffix') || '');
+    });
 
     if ('IntersectionObserver' in window && statsCard) {
       var statObserver = new IntersectionObserver(
