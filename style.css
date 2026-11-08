@@ -741,7 +741,8 @@ h2 {
 
 .contact-panel {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  align-items: center;
   gap: clamp(2rem, 5vw, 4rem);
   padding: clamp(32px, 5vw, 60px);
   border-radius: 28px;
@@ -749,12 +750,21 @@ h2 {
   color: #fff;
   box-shadow: 0 34px 70px -40px rgba(60, 20, 120, .7);
 }
+.contact-art {
+  width: min(100%, 440px);
+  justify-self: center;
+}
+.contact-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .contact-main h2 {
   margin-bottom: 18px;
   color: #fff;
 }
 .contact-main > p {
-  max-width: 26em;
+  max-width: 32em;
   color: rgba(255, 255, 255, .78);
   font-size: .95rem;
 }
@@ -1029,6 +1039,7 @@ html::-webkit-scrollbar {
   }
 
   .contact-panel { grid-template-columns: 1fr; }
+  .contact-art { width: min(100%, 340px); }
   .contact-list { align-self: start; }
 
   .footer-top { align-items: flex-start; }
