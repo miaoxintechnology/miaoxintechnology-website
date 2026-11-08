@@ -211,6 +211,27 @@
     }
   }
 
+  /* 悬浮回到顶部（DSH 风格） */
+  var backTop = document.getElementById('backTop');
+  if (backTop) {
+    var backTopShown = false;
+    function updateBackTop() {
+      var show = window.scrollY > Math.max(420, window.innerHeight * 0.6);
+      if (show !== backTopShown) {
+        backTopShown = show;
+        backTop.classList.toggle('is-visible', show);
+      }
+    }
+    window.addEventListener('scroll', updateBackTop, { passive: true });
+    window.addEventListener('resize', updateBackTop);
+    window.addEventListener('load', updateBackTop);
+    updateBackTop();
+    backTop.addEventListener('click', function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+
   /* 主站专属滚动条（隐藏浏览器原生滚动条） */
   var pageBar = document.getElementById('pageScrollbar');
   var pageThumb = document.getElementById('pageScrollThumb');
