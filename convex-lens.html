@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>凸透镜成像规律</title>
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{background:#fff}
+  body{
+    margin:0;
+    color:#111;
+    font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:1060px;
+    margin:0 auto;
+    padding:26px 20px 38px;
+  }
+  h1{
+    margin:0 0 4px;
+    font-size:22px;
+    line-height:1.35;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .sub{
+    margin:0;
+    color:#666;
+    font-size:13px;
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    margin:8px 0;
+    padding:7px 0;
+    border-top:1px solid #e4e4e4;
+    border-bottom:1px solid #e4e4e4;
+  }
+  .controls > *{
+    margin:6px 18px 6px 0;
+  }
+  .field{
+    display:inline-flex;
+    align-items:center;
+    color:#222;
+    font-size:13px;
+    white-space:nowrap;
+  }
+  .field input{margin:0 3px 0 6px}
+  .field input[type="number"]{
+    width:74px;
+    height:30px;
+    padding:0 6px;
+    border:1px solid #b9b9b9;
+    border-radius:3px;
+    background:#fff;
+    color:#111;
+    font:inherit;
+    font-size:13px;
+    font-variant-numeric:tabular-nums;
+  }
+  .field input[type="number"]:focus{
+    outline:1.5px solid #333;
+    outline-offset:1px;
+  }
+  .unit{color:#777;font-size:12px}
+  .btn{
+    height:30px;
+    padding:0 12px;
+    border:1px solid #999;
+    border-radius:3px;
+    background:#fff;
+    color:#222;
+    font:inherit;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+  .btn:hover{background:#f5f5f5}
+  .btn:active{background:#ececec}
+  .btn[aria-pressed="true"]{border-color:#555;background:#efefef}
+  .hint{
+    margin-left:auto;
+    margin-right:0;
+    color:#777;
+    font-size:12px;
+    white-space:nowrap;
+  }
+  .stage{
+    position:relative;
+    height:420px;
+    height:clamp(330px,52vh,500px);
+    border:1px solid #ccc;
+    background:#fff;
+    overflow:hidden;
+    touch-action:pan-y;
+  }
+  .fallback{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:80%;
+    max-width:360px;
+    transform:translate(-50%,-50%);
+    color:#777;
+    font-size:13px;
+    line-height:1.7;
+    text-align:center;
+    background:#fff;
+    pointer-events:none;
+  }
+  #stage{
+    display:block;
+    width:100%;
+    height:100%;
+    cursor:default;
+    outline:none;
+  }
+  #stage:focus-visible{
+    outline:1.5px solid #333;
+    outline-offset:-2px;
+  }
+  .readout{
+    margin-top:12px;
+    color:#222;
+    font-size:13px;
+    line-height:1.8;
+  }
+  .values{
+    font-variant-numeric:tabular-nums;
+  }
+  .type{
+    margin-top:2px;
+    font-weight:600;
+  }
+  .notes{
+    display:flex;
+    flex-wrap:wrap;
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px solid #eee;
+    color:#777;
+    font-size:11.5px;
+  }
+  .notes span{margin:2px 24px 2px 0}
+  .formula{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  }
+  @media (max-width:600px){
+    .app{padding:20px 12px 30px}
+    h1{font-size:19px}
+    .sub{font-size:12px}
+    .controls{padding:6px 0}
+    .controls > *{margin:5px 12px 5px 0}
+    .field{font-size:12.5px}
+    .field input[type="number"]{width:68px}
+    .hint{margin-left:0;margin-right:0;width:100%;white-space:normal}
+    .notes span{margin-right:16px}
+    .stage{height:360px}
+    .readout{font-size:12.5px;line-height:1.75}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>凸透镜成像规律</h1>
+  <p class="sub">拖动物体或红色 F 点，也可以直接输入物距和焦距。</p>
+
+  <div class="controls">
+    <label class="field" for="uInput">物距 u
+      <input id="uInput" type="number" min="2" max="26" step="0.1" value="12" inputmode="decimal" autocomplete="off">
+      <span class="unit">cm</span>
+    </label>
+    <label class="field" for="fInput">焦距 f
+      <input id="fInput" type="number" min="3" max="10" step="0.1" value="7" inputmode="decimal" autocomplete="off">
+      <span class="unit">cm</span>
+    </label>
+    <button class="btn" id="autoBtn" type="button" aria-pressed="false">自动演示</button>
+    <button class="btn" id="resetBtn" type="button">重置</button>
+    <span class="hint">拖动蜡烛或红色 F 点</span>
+  </div>
+
+  <div class="stage" id="stageWrap">
+    <canvas id="stage" tabindex="0" aria-label="凸透镜成像光路。拖动蜡烛改变物距，拖动红色 F 点改变焦距。">您的浏览器不支持 Canvas。</canvas>
+    <div class="fallback" id="fallback">请启用 JavaScript，并使用支持 Canvas 的现代浏览器查看光路。</div>
+  </div>
+
+  <div class="readout">
+    <div class="values" id="values"></div>
+    <div class="type" id="type"></div>
+    <div class="notes">
+      <span class="formula">1/f = 1/u + 1/v</span>
+      <span>实线：光线（箭头为传播方向）</span>
+      <span>虚线：反向延长线</span>
+      <span>红色：焦点</span>
+    </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const MIN_U = 2;
+  const MAX_U = 26;
+  const MIN_F = 3;
+  const MAX_F = 10;
+  const AUTO_MIN = 2.5;
+  const AUTO_MAX = 24.5;
+  const EPS = 0.05;
+
+  const canvas = document.getElementById('stage');
+  const stageWrap = document.getElementById('stageWrap');
+  const fallbackEl = document.getElementById('fallback');
+  if (!canvas || typeof canvas.getContext !== 'function') return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  if (fallbackEl) fallbackEl.style.display = 'none';
+
+  const uInput = document.getElementById('uInput');
+  const fInput = document.getElementById('fInput');
+  const autoBtn = document.getElementById('autoBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const valuesEl = document.getElementById('values');
+  const typeEl = document.getElementById('type');
+
+  const state = {
+    u: 12,
+    f: 7,
+    auto: false,
+    autoDir: 1,
+    lastAutoTime: 0,
+    drag: null,
+    dragOffset: 0
+  };
+
+  let W = 0;
+  let H = 0;
+  let DPR = 1;
+  let autoToken = 0;
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const round1 = v => Math.round(v * 10) / 10;
+  const isNum = n => typeof n === 'number' && isFinite(n);
+  const hypot = (x, y) => Math.sqrt(x * x + y * y);
+  const requestFrame = (window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    function (cb) { return setTimeout(function () { cb(Date.now()); }, 16); }).bind(window);
+
+  function normalize(x, y) {
+    const d = hypot(x, y) || 1;
+    return { x: x / d, y: y / d };
+  }
+
+  function extendToBounds(p, dir) {
+    let t = Infinity;
+    const pad = 8;
+    if (dir.x > 1e-6) t = Math.min(t, (W - pad - p.x) / dir.x);
+    else if (dir.x < -1e-6) t = Math.min(t, (pad - p.x) / dir.x);
+    if (dir.y > 1e-6) t = Math.min(t, (H - pad - p.y) / dir.y);
+    else if (dir.y < -1e-6) t = Math.min(t, (pad - p.y) / dir.y);
+    if (!isNum(t) || t < 0) t = 0;
+    return { x: p.x + dir.x * t, y: p.y + dir.y * t };
+  }
+
+  function drawLine(points) {
+    if (!points.length) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+    ctx.stroke();
+  }
+
+  function drawArrow(a, b, t) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = hypot(dx, dy);
+    if (len < 12) return;
+    const x = a.x + dx * t;
+    const y = a.y + dy * t;
+    const angle = Math.atan2(dy, dx);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(1.5, 0);
+    ctx.lineTo(-5.5, -3.2);
+    ctx.lineTo(-5.5, 3.2);
+    ctx.closePath();
+    ctx.fillStyle = '#1b1b1b';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawLabel(text, x, y, color, size, weight) {
+    ctx.save();
+    ctx.font = `${weight || 600} ${size}px "PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = '#fff';
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function getGeometry() {
+    const lensX = W * 0.55;
+    const cy = H * 0.52;
+    const lensHalf = Math.max(64, Math.min(H * 0.39, cy - 20, H - cy - 22));
+    let scale = Math.min((lensX - 26) / MAX_U, (W - lensX - 26) / (2 * MAX_F));
+    scale = Math.max(1.8, scale);
+
+    const fPx = state.f * scale;
+    const uPx = state.u * scale;
+    const objX = lensX - uPx;
+    const objH = Math.min(58, H * 0.13);
+    const noImage = Math.abs(state.u - state.f) <= EPS;
+
+    let v = Infinity;
+    let imgX = Infinity;
+    let imgTipY = NaN;
+    let imgHeight = NaN;
+    let vScale = 0;
+    let real = false;
+
+    if (!noImage) {
+      v = (state.u * state.f) / (state.u - state.f);
+      imgX = lensX + v * scale;
+      imgTipY = cy + objH * (v / state.u);
+      imgHeight = Math.abs(objH * (v / state.u));
+      vScale = Math.abs(v / state.u);
+      real = v > 0;
+    }
+
+    return {
+      lensX, cy, lensHalf, scale, fPx, uPx, objX, objH,
+      noImage, v, imgX, imgTipY, imgHeight, vScale, real,
+      bulge: clamp(lensHalf * 0.13, 8, 26)
+    };
+  }
+
+  function drawAxis(g) {
+    ctx.save();
+    ctx.strokeStyle = '#6f6f6f';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(12, g.cy + .5);
+    ctx.lineTo(W - 12, g.cy + .5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawLens(g) {
+    const { lensX, cy, lensHalf, bulge } = g;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(lensX, cy - lensHalf);
+    ctx.quadraticCurveTo(lensX - bulge, cy - lensHalf * .42, lensX - bulge, cy);
+    ctx.quadraticCurveTo(lensX - bulge, cy + lensHalf * .42, lensX, cy + lensHalf);
+    ctx.quadraticCurveTo(lensX + bulge, cy + lensHalf * .42, lensX + bulge, cy);
+    ctx.quadraticCurveTo(lensX + bulge, cy - lensHalf * .42, lensX, cy - lensHalf);
+    ctx.closePath();
+    ctx.fillStyle = '#f2f9fd';
+    ctx.fill();
+    ctx.strokeStyle = '#4b4b4b';
+    ctx.lineWidth = 1.25;
+    ctx.stroke();
+
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(lensX, cy, 2, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCandle(x, baseY, h, opts = {}) {
+    const s = opts.scale === undefined ? 1 : opts.scale;
+    const flip = !!opts.flip;
+    const ghost = !!opts.ghost;
+    const virtual = !!opts.virtual;
+    if (!isNum(s) || s <= 0.01) return;
+
+    ctx.save();
+    ctx.translate(x, baseY);
+    ctx.scale(s, flip ? -s : s);
+    ctx.globalAlpha = ghost ? 0.63 : 1;
+
+    const bw = Math.max(5.5, h * 0.2);
+    const top = -h * 0.72;
+    const bottom = -h * 0.035;
+
+    // holder
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bw * 1.05, 2.2, 0, 0, TAU);
+    ctx.fillStyle = ghost ? '#f7f0df' : '#e9e9e9';
+    ctx.fill();
+    ctx.strokeStyle = ghost ? '#c79534' : '#858585';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // body
+    ctx.beginPath();
+    ctx.moveTo(-bw / 2, bottom);
+    ctx.lineTo(-bw / 2, top + 2.4);
+    ctx.quadraticCurveTo(-bw / 2, top, -bw / 2 + 2.4, top);
+    ctx.lineTo(bw / 2 - 2.4, top);
+    ctx.quadraticCurveTo(bw / 2, top, bw / 2, top + 2.4);
+    ctx.lineTo(bw / 2, bottom);
+    ctx.quadraticCurveTo(0, bottom + 2, -bw / 2, bottom);
+    ctx.closePath();
+    ctx.fillStyle = ghost ? 'rgba(244,197,66,.16)' : '#f4c542';
+    ctx.fill();
+    if (ghost) ctx.setLineDash(virtual ? [4, 4] : []);
+    ctx.strokeStyle = ghost ? '#c08a22' : '#8a5a00';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // wax top
+    ctx.beginPath();
+    ctx.ellipse(0, top, bw / 2, bw * .16, 0, 0, TAU);
+    ctx.fillStyle = ghost ? 'rgba(255,243,200,.28)' : '#ffe9a8';
+    ctx.fill();
+    if (ghost) ctx.setLineDash(virtual ? [4, 4] : []);
+    ctx.strokeStyle = ghost ? '#c08a22' : '#8a5a00';
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // wick
+    ctx.strokeStyle = '#4f3514';
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.lineTo(0, top - h * .035);
+    ctx.stroke();
+
+    // flame
+    const flameBase = top - h * .025;
+    ctx.beginPath();
+    ctx.moveTo(0, -h);
+    ctx.bezierCurveTo(bw * .62, -h * .91, bw * .62, flameBase, 0, flameBase);
+    ctx.bezierCurveTo(-bw * .62, flameBase, -bw * .62, -h * .91, 0, -h);
+    ctx.closePath();
+    ctx.fillStyle = ghost ? 'rgba(255,159,28,.28)' : '#ff9f1c';
+    ctx.fill();
+    if (ghost) ctx.setLineDash(virtual ? [4, 4] : []);
+    ctx.strokeStyle = ghost ? '#b87816' : '#b56a00';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // inner flame
+    if (!ghost) {
+      ctx.beginPath();
+      ctx.moveTo(0, -h * .91);
+      ctx.quadraticCurveTo(bw * .22, -h * .84, 0, flameBase - h * .02);
+      ctx.quadraticCurveTo(-bw * .22, -h * .84, 0, -h * .91);
+      ctx.closePath();
+      ctx.fillStyle = '#ffe27a';
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function drawObject(g) {
+    drawCandle(g.objX, g.cy, g.objH, { scale: 1, flip: false });
+  }
+
+  function drawImage(g) {
+    if (g.noImage) return;
+    if (!isNum(g.imgX) || !isNum(g.imgTipY)) return;
+    if (g.imgX < -40 || g.imgX > W + 40) return;
+    if (g.vScale > 12 || g.imgHeight > H * 4) return;
+    drawCandle(g.imgX, g.cy, g.objH, {
+      scale: g.vScale,
+      flip: g.real,
+      ghost: true,
+      virtual: !g.real
+    });
+  }
+
+  function drawRays(g) {
+    const P = { x: g.objX, y: g.cy - g.objH };
+    const A1 = { x: g.lensX, y: P.y };
+    const F2 = { x: g.lensX + g.fPx, y: g.cy };
+    const O = { x: g.lensX, y: g.cy };
+    const dir1 = normalize(F2.x - A1.x, F2.y - A1.y);
+    const dir2 = normalize(O.x - P.x, O.y - P.y);
+    const out1 = extendToBounds(A1, dir1);
+    const out2 = extendToBounds(O, dir2);
+
+    let A3 = null;
+    let out3 = null;
+    if (!g.noImage) {
+      const y3 = g.cy - g.objH * g.fPx / (g.fPx - g.uPx);
+      if (Math.abs(y3 - g.cy) < g.lensHalf * .98 && y3 > 8 && y3 < H - 8) {
+        A3 = { x: g.lensX, y: y3 };
+        out3 = { x: W - 8, y: y3 };
+      }
+    }
+
+    const virtual = !g.noImage && !g.real;
+
+    // 虚像的反向延长线
+    if (virtual) {
+      ctx.save();
+      ctx.strokeStyle = '#9a9a9a';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      const back1 = extendToBounds(A1, { x: -dir1.x, y: -dir1.y });
+      drawLine([A1, back1]);
+      const back2 = extendToBounds(P, { x: -dir2.x, y: -dir2.y });
+      drawLine([P, back2]);
+      if (A3) drawLine([A3, { x: 8, y: A3.y }]);
+      ctx.restore();
+    }
+
+    // 光线
+    ctx.save();
+    ctx.strokeStyle = '#1b1b1b';
+    ctx.lineWidth = 1.25;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    drawLine([P, A1, out1]);
+    drawArrow(P, A1, .55);
+    drawArrow(A1, out1, .58);
+
+    drawLine([P, O, out2]);
+    drawArrow(P, O, .55);
+    drawArrow(O, out2, .58);
+
+    if (A3 && out3) {
+      drawLine([P, A3, out3]);
+      drawArrow(P, A3, .55);
+      drawArrow(A3, out3, .58);
+    }
+
+    ctx.restore();
+
+    // 像点
+    if (!g.noImage && g.imgX > 8 && g.imgX < W - 8 && g.imgTipY > 8 && g.imgTipY < H - 8) {
+      ctx.save();
+      ctx.fillStyle = g.real ? '#8a5a00' : '#777';
+      ctx.beginPath();
+      ctx.arc(g.imgX, g.imgTipY, 2.2, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawFocalPoints(g) {
+    const items = [
+      { x: g.lensX - g.fPx, text: 'F' },
+      { x: g.lensX - g.fPx * 2, text: '2F' },
+      { x: g.lensX + g.fPx, text: 'F′' },
+      { x: g.lensX + g.fPx * 2, text: '2F′' }
+    ];
+    const fs = W < 520 ? 11 : 13;
+    ctx.save();
+    for (const item of items) {
+      if (item.x < 10 || item.x > W - 10) continue;
+      ctx.strokeStyle = '#c62828';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(item.x + .5, g.cy - 5);
+      ctx.lineTo(item.x + .5, g.cy + 5);
+      ctx.stroke();
+      drawLabel(item.text, item.x, g.cy + (W < 520 ? 17 : 20), '#c62828', fs, 700);
+    }
+    ctx.restore();
+  }
+
+  function drawImageLabel(g) {
+    if (g.noImage) return;
+    if (g.imgX < 10 || g.imgX > W - 10) return;
+    if (g.imgTipY < 8 || g.imgTipY > H - 8) return;
+    const text = g.real ? '实像' : '虚像';
+    const y = g.real ? Math.min(H - 10, g.imgTipY + 16) : Math.max(13, g.imgTipY - 11);
+    drawLabel(text, clamp(g.imgX, 24, W - 24), y, '#8a5a00', W < 520 ? 10 : 12, 600);
+  }
+
+  function drawCanvasNote(g) {
+    let note = '';
+    if (g.noImage) {
+      note = 'u = f：不成像';
+    } else if (g.imgX < 8 || g.imgX > W - 8) {
+      note = '像在画面外';
+    } else if (g.imgTipY < 0 || g.imgTipY > H) {
+      note = '像高超出画面';
+    }
+    if (!note) return;
+    ctx.save();
+    ctx.font = '12px "PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif';
+    ctx.fillStyle = '#777';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText(note, W - 12, 11);
+    ctx.restore();
+  }
+
+  function draw() {
+    if (!W || !H) return;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+
+    const g = getGeometry();
+    drawAxis(g);
+    drawLens(g);
+    drawImage(g);
+    drawObject(g);
+    drawRays(g);
+    drawFocalPoints(g);
+    drawImageLabel(g);
+    drawCanvasNote(g);
+  }
+
+  function getInfo() {
+    const u = state.u;
+    const f = state.f;
+    const noImage = Math.abs(u - f) <= EPS;
+    const v = noImage ? Infinity : (u * f) / (u - f);
+    const vAbs = Math.abs(v);
+    const m = noImage ? Infinity : Math.abs(v / u);
+    const twoF = f * 2;
+
+    let type;
+    if (noImage) {
+      type = '不成像（u = f，折射光平行射出）';
+    } else if (u < f) {
+      type = '正立、放大的虚像（u < f，像与物同侧）';
+    } else if (Math.abs(u - twoF) <= EPS) {
+      type = '倒立、等大的实像（u = 2f）';
+    } else if (u > twoF) {
+      type = '倒立、缩小的实像（u > 2f）';
+    } else {
+      type = '倒立、放大的实像（f < u < 2f）';
+    }
+
+    return { u, f, v, vAbs, m, noImage, type };
+  }
+
+  function formatV(info) {
+    if (info.noImage || !isNum(info.v)) return '∞';
+    if (Math.abs(info.v) >= 1000) return '∞';
+    return info.v < 0 ? `−${Math.abs(info.v).toFixed(1)}` : info.v.toFixed(1);
+  }
+
+  function updateAll() {
+    const info = getInfo();
+    const vText = formatV(info);
+    const mText = info.noImage ? '—' : info.m.toFixed(2);
+
+    valuesEl.textContent =
+      `物距 u = ${info.u.toFixed(1)} cm　像距 v = ${vText}${vText === '∞' ? '' : ' cm'}　焦距 f = ${info.f.toFixed(1)} cm　放大率 |m| = ${mText}${info.noImage ? '' : '×'}`;
+
+    typeEl.textContent = info.type;
+
+    if (document.activeElement !== uInput) uInput.value = state.u.toFixed(1);
+    if (document.activeElement !== fInput) fInput.value = state.f.toFixed(1);
+
+    autoBtn.textContent = state.auto ? '暂停' : '自动演示';
+    autoBtn.setAttribute('aria-pressed', state.auto ? 'true' : 'false');
+
+    draw();
+  }
+
+  function stopAuto() {
+    autoToken++;
+    if (!state.auto) return;
+    state.auto = false;
+    state.lastAutoTime = 0;
+  }
+
+  function startAuto() {
+    if (state.auto) return;
+    stopAuto();
+    state.auto = true;
+    state.autoDir = state.u >= (AUTO_MIN + AUTO_MAX) / 2 ? -1 : 1;
+    state.lastAutoTime = 0;
+    const token = autoToken;
+    requestFrame(function (ts) { autoStep(ts, token); });
+  }
+
+  function autoStep(ts, token) {
+    if (!state.auto || token !== autoToken) return;
+    if (!state.lastAutoTime) state.lastAutoTime = ts;
+    const dt = Math.min(.05, (ts - state.lastAutoTime) / 1000);
+    state.lastAutoTime = ts;
+
+    let u = state.u + state.autoDir * dt * 3.2;
+    if (state.autoDir > 0 && u >= AUTO_MAX) {
+      u = AUTO_MAX;
+      state.autoDir = -1;
+    } else if (state.autoDir < 0 && u <= AUTO_MIN) {
+      u = AUTO_MIN;
+      state.autoDir = 1;
+    }
+    state.u = round1(clamp(u, MIN_U, MAX_U));
+    updateAll();
+    if (state.auto && token === autoToken) {
+      requestFrame(function (next) { autoStep(next, token); });
+    }
+  }
+
+  function autoToggle() {
+    if (state.auto) {
+      stopAuto();
+      updateAll();
+    } else {
+      startAuto();
+      updateAll();
+    }
+  }
+
+  function setU(value) {
+    state.u = round1(clamp(value, MIN_U, MAX_U));
+    updateAll();
+  }
+
+  function setF(value) {
+    state.f = round1(clamp(value, MIN_F, MAX_F));
+    updateAll();
+  }
+
+  function resize() {
+    const rect = stageWrap.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+    W = rect.width;
+    H = rect.height;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    draw();
+  }
+
+  function pointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitF(p, g) {
+    const fs = W < 520 ? 11 : 13;
+    const ys = g.cy + (W < 520 ? 17 : 20);
+    for (const x of [g.lensX - g.fPx, g.lensX + g.fPx]) {
+      if (Math.abs(p.x - x) <= Math.max(18, fs * 1.1) && p.y >= g.cy + 2 && p.y <= ys + 14) return true;
+    }
+    return false;
+  }
+
+  function hitObject(p, g) {
+    const half = Math.max(22, g.objH * .45);
+    return p.x >= g.objX - half && p.x <= g.objX + half &&
+           p.y >= g.cy - g.objH - 10 && p.y <= g.cy + 8;
+  }
+
+  function updateCursor(p) {
+    const g = getGeometry();
+    let cursor = 'default';
+    if (hitF(p, g)) cursor = 'ew-resize';
+    else if (hitObject(p, g)) cursor = 'grab';
+    canvas.style.cursor = cursor;
+  }
+
+  function startInteraction(p) {
+    const g = getGeometry();
+    const onF = hitF(p, g);
+    if (!onF && !hitObject(p, g)) return false;
+    stopAuto();
+    try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); }
+    if (onF) {
+      state.drag = 'f';
+      setF(Math.abs(p.x - g.lensX) / g.scale);
+    } else {
+      state.drag = 'u';
+      state.dragOffset = p.x - g.objX;
+      setU((g.lensX - (p.x - state.dragOffset)) / g.scale);
+      canvas.style.cursor = 'grabbing';
+    }
+    return true;
+  }
+
+  function moveInteraction(p) {
+    if (state.drag === 'f') {
+      const g = getGeometry();
+      setF(Math.abs(p.x - g.lensX) / g.scale);
+      return;
+    }
+    if (state.drag === 'u') {
+      const g = getGeometry();
+      setU((g.lensX - (p.x - state.dragOffset)) / g.scale);
+      return;
+    }
+    updateCursor(p);
+  }
+
+  function endInteraction(p) {
+    if (!state.drag) return;
+    state.drag = null;
+    state.dragOffset = 0;
+    if (p) updateCursor(p);
+    else canvas.style.cursor = 'default';
+  }
+
+  if (window.PointerEvent) {
+    canvas.addEventListener('pointerdown', e => {
+      if (e.button !== undefined && e.button !== 0) return;
+      if (!startInteraction(pointerPos(e))) return;
+      e.preventDefault();
+      if (canvas.setPointerCapture) {
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      moveInteraction(pointerPos(e));
+    });
+
+    function endPointer(e) {
+      endInteraction(pointerPos(e));
+      if (canvas.releasePointerCapture) {
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    }
+
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+    canvas.addEventListener('pointerleave', () => {
+      if (!state.drag) canvas.style.cursor = 'default';
+    });
+  } else {
+    // 旧浏览器：鼠标与触摸事件回退
+    let mouseDown = false;
+
+    canvas.addEventListener('mousedown', e => {
+      if (e.button !== undefined && e.button !== 0) return;
+      if (!startInteraction(pointerPos(e))) return;
+      e.preventDefault();
+      mouseDown = true;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    function onMouseMove(e) {
+      if (!mouseDown) return;
+      e.preventDefault();
+      moveInteraction(pointerPos(e));
+    }
+
+    function onMouseUp(e) {
+      if (!mouseDown) return;
+      mouseDown = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      endInteraction(pointerPos(e));
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      if (!mouseDown) updateCursor(pointerPos(e));
+    });
+    canvas.addEventListener('mouseleave', () => {
+      if (!state.drag) canvas.style.cursor = 'default';
+    });
+
+    let touchActive = false;
+
+    canvas.addEventListener('touchstart', e => {
+      if (touchActive || e.touches.length !== 1) return;
+      if (!startInteraction(pointerPos(e.touches[0]))) return;
+      touchActive = true;
+      e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      if (!touchActive) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      moveInteraction(pointerPos(touch));
+    }, { passive: false });
+
+    function endTouch() {
+      if (!touchActive) return;
+      touchActive = false;
+      endInteraction(null);
+    }
+
+    canvas.addEventListener('touchend', endTouch);
+    canvas.addEventListener('touchcancel', endTouch);
+  }
+
+  uInput.addEventListener('focus', () => {
+    if (state.auto) {
+      stopAuto();
+      updateAll();
+    }
+  });
+  fInput.addEventListener('focus', () => {
+    if (state.auto) {
+      stopAuto();
+      updateAll();
+    }
+  });
+  autoBtn.addEventListener('click', autoToggle);
+  resetBtn.addEventListener('click', () => {
+    stopAuto();
+    state.u = 12;
+    state.f = 7;
+    updateAll();
+  });
+
+  uInput.addEventListener('input', () => {
+    const value = parseFloat(uInput.value);
+    if (!isNum(value)) return;
+    stopAuto();
+    state.u = round1(clamp(value, MIN_U, MAX_U));
+    updateAll();
+  });
+  fInput.addEventListener('input', () => {
+    const value = parseFloat(fInput.value);
+    if (!isNum(value)) return;
+    stopAuto();
+    state.f = round1(clamp(value, MIN_F, MAX_F));
+    updateAll();
+  });
+  uInput.addEventListener('change', () => {
+    uInput.value = state.u.toFixed(1);
+  });
+  fInput.addEventListener('change', () => {
+    fInput.value = state.f.toFixed(1);
+  });
+  uInput.addEventListener('blur', () => {
+    uInput.value = state.u.toFixed(1);
+  });
+  fInput.addEventListener('blur', () => {
+    fInput.value = state.f.toFixed(1);
+  });
+
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(resize);
+    ro.observe(stageWrap);
+  } else {
+    window.addEventListener('resize', resize);
+  }
+  window.addEventListener('resize', resize);
+
+  resize();
+  updateAll();
+})();
+</script>
+</body>
+</html>
