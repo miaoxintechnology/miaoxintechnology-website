@@ -1,4 +1,3 @@
-/* 喵芯科技 · 交互脚本（无依赖） */
 (function () {
   'use strict';
 
