@@ -593,6 +593,14 @@ h2 {
   letter-spacing: .04em;
   text-align: center;
 }
+.naming-motto {
+  margin-top: 18px;
+  color: var(--purple-700);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+}
 
 /* ---------- 服务 ---------- */
 .service-grid {
