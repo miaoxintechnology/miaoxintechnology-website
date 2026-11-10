@@ -601,6 +601,14 @@ h2 {
   letter-spacing: .04em;
   text-align: center;
 }
+.naming-body {
+  max-width: 780px;
+  margin: 24px auto 0;
+  color: var(--body);
+  font-size: 1rem;
+  line-height: 1.95;
+}
+.naming-body p + p { margin-top: 16px; }
 
 /* ---------- 服务 ---------- */
 .service-grid {
