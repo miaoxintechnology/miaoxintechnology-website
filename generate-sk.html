@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>密钥生成器 · RSA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f8fc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.08), 0 8px 24px rgba(0, 0, 0, 0.02);
+            padding: 36px 40px 44px;
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            margin-bottom: 28px;
+        }
+        .app-title h1 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #0b1e33;
+        }
+        .app-title .badge {
+            font-size: 13px;
+            font-weight: 500;
+            background: #eef3fb;
+            color: #1e5b9c;
+            padding: 4px 14px;
+            border-radius: 100px;
+            margin-left: 12px;
+        }
+        .btn-primary {
+            background: #1e5b9c;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 60px;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: #164a7e;
+            transform: scale(1.02);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        .key-pair {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 16px;
+        }
+        .key-box {
+            background: #f8faff;
+            border-radius: 18px;
+            border: 1px solid #eaedf4;
+            padding: 18px 20px;
+        }
+        .key-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .key-box-header label {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a2e4a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .key-box-header .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-sm {
+            background: white;
+            border: 1px solid #d0d9e8;
+            padding: 5px 14px;
+            border-radius: 60px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e3c5a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-sm:hover {
+            background: #e9eefa;
+            border-color: #a7bcdb;
+        }
+        .key-content {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1a2e4a;
+            border: 1px solid #e2e8f2;
+            word-break: break-all;
+            max-height: 180px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a2e4a;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            background: #b13a3a;
+        }
+        .toast.success {
+            background: #1f8b4c;
+        }
+        @media (max-width: 600px) {
+            .app {
+                padding: 20px 16px 28px;
+            }
+            .key-box-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .key-box-header .actions {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast"></div>
+    <div class="app">
+        <header class="app-header">
+            <div class="app-title">
+                <h1>🔑 密钥生成器 <span class="badge">RSA‑2048</span></h1>
+            </div>
+            <button class="btn-primary" id="genBtn">⚡ 生成新密钥对</button>
+        </header>
+
+        <div class="key-pair" id="keyPairContainer">
+            <div class="key-box">
+                <div class="key-box-header">
+                    <label>🔓 公钥 (分享给加密器)</label>
+                    <div class="actions">
+                        <button class="btn-sm" id="copyPub">📝 复制</button>
+                        <button class="btn-sm" id="downloadPub">📥 下载</button>
+                    </div>
+                </div>
+                <div class="key-content" id="pubKeyDisplay">尚未生成</div>
+            </div>
+            <div class="key-box">
+                <div class="key-box-header">
+                    <label>🔐 私钥 (自己妥善保存)</label>
+                    <div class="actions">
+                        <button class="btn-sm" id="copyPriv">📝 复制</button>
+                        <button class="btn-sm" id="downloadPriv">📥 下载</button>
+                    </div>
+                </div>
+                <div class="key-content" id="privKeyDisplay">尚未生成</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  密钥生成器
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const pubDisplay = $('pubKeyDisplay');
+        const privDisplay = $('privKeyDisplay');
+        const genBtn = $('genBtn');
+        const copyPub = $('copyPub');
+        const copyPriv = $('copyPriv');
+        const downloadPub = $('downloadPub');
+        const downloadPriv = $('downloadPriv');
+        const toast = $('toast');
+
+        let currentPubJwk = null;
+        let currentPrivJwk = null;
+        let toastTimer = null;
+
+        function showToast(msg, type = 'info', duration = 2800) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toast.textContent = msg;
+            toast.className = 'toast';
+            if (type === 'error') toast.classList.add('error');
+            else if (type === 'success') toast.classList.add('success');
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                toastTimer = null;
+            }, duration);
+        }
+
+        async function generateKeyPair() {
+            try {
+                const keyPair = await crypto.subtle.generateKey(
+                    { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+                const pubJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+                const privJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+                return { pubJwk, privJwk };
+            } catch (err) {
+                throw new Error('密钥生成失败: ' + err.message);
+            }
+        }
+
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+
+        function downloadJSON(obj, filename) {
+            const blob = new Blob([formatJSON(obj)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function generateAndDisplay() {
+            try {
+                genBtn.disabled = true;
+                genBtn.textContent = '⏳ 生成中…';
+                const result = await generateKeyPair();
+                currentPubJwk = result.pubJwk;
+                currentPrivJwk = result.privJwk;
+                pubDisplay.textContent = formatJSON(currentPubJwk);
+                privDisplay.textContent = formatJSON(currentPrivJwk);
+                showToast('✅ 密钥对生成成功！', 'success');
+            } catch (err) {
+                showToast('❌ ' + err.message, 'error');
+            } finally {
+                genBtn.disabled = false;
+                genBtn.textContent = '⚡ 生成新密钥对';
+            }
+        }
+
+        // ---- 复制 ----
+        function copyText(text, msg = '已复制到剪贴板') {
+            if (!text || text === '尚未生成') {
+                showToast('请先生成密钥', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📝 ' + msg, 'success');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('📝 ' + msg, 'success');
+            });
+        }
+
+        copyPub.addEventListener('click', () => copyText(pubDisplay.textContent, '公钥已复制'));
+        copyPriv.addEventListener('click', () => copyText(privDisplay.textContent, '私钥已复制'));
+
+        // ---- 下载 ----
+        downloadPub.addEventListener('click', () => {
+            if (!currentPubJwk) { showToast('请先生成密钥', 'error'); return; }
+            downloadJSON(currentPubJwk, 'public_key.json');
+            showToast('📥 公钥已下载', 'success');
+        });
+        downloadPriv.addEventListener('click', () => {
+            if (!currentPrivJwk) { showToast('请先生成密钥', 'error'); return; }
+            downloadJSON(currentPrivJwk, 'private_key.json');
+            showToast('📥 私钥已下载', 'success');
+        });
+
+        // ---- 生成按钮 ----
+        genBtn.addEventListener('click', generateAndDisplay);
+
+        // 自动生成一组默认密钥
+        generateAndDisplay();
+        console.log('🔑 密钥生成器已启动');
+    </script>
+</body>
+</html>

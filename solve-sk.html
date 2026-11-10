@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>解密器 · 混合加密</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f8fc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.08), 0 8px 24px rgba(0, 0, 0, 0.02);
+            padding: 36px 40px 44px;
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            margin-bottom: 28px;
+        }
+        .app-title h1 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #0b1e33;
+        }
+        .app-title .badge {
+            font-size: 13px;
+            font-weight: 500;
+            background: #eef3fb;
+            color: #1e5b9c;
+            padding: 4px 14px;
+            border-radius: 100px;
+            margin-left: 12px;
+        }
+        .key-section {
+            background: #f8faff;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            border: 1px solid #eaedf4;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 12px 20px;
+        }
+        .key-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2a405e;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 8px;
+        }
+        .key-textarea {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: #1a2e4a;
+            border: 1px solid #e2e8f2;
+            resize: vertical;
+            min-height: 80px;
+            max-height: 150px;
+            line-height: 1.6;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .key-textarea:focus {
+            border-color: #7fa3d4;
+            box-shadow: 0 0 0 3px rgba(30, 91, 156, 0.1);
+        }
+        .key-textarea.drag-over {
+            border-color: #1e5b9c;
+            background: #eaf1fd;
+        }
+        .key-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-key {
+            background: white;
+            border: 1px solid #d0d9e8;
+            padding: 6px 16px;
+            border-radius: 60px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e3c5a;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-key:hover {
+            background: #e9eefa;
+            border-color: #a7bcdb;
+        }
+        .btn-key.primary {
+            background: #1e5b9c;
+            border-color: #1e5b9c;
+            color: white;
+        }
+        .btn-key.primary:hover {
+            background: #174a7e;
+            border-color: #174a7e;
+        }
+        .btn-key.danger {
+            background: #b13a3a;
+            border-color: #b13a3a;
+            color: white;
+        }
+        .btn-key.danger:hover {
+            background: #8f2e2e;
+            border-color: #8f2e2e;
+        }
+        .status {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .translator {
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+            margin-top: 6px;
+        }
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fafcff;
+            border-radius: 20px;
+            border: 1.5px solid #e8edf6;
+            padding: 18px 20px 20px;
+            min-height: 320px;
+        }
+        .panel:focus-within {
+            border-color: #7fa3d4;
+            box-shadow: 0 0 0 4px rgba(30, 91, 156, 0.06);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .panel-header label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #2c405e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-header .count {
+            font-size: 13px;
+            color: #8499b8;
+            font-weight: 400;
+        }
+        .panel-header .count .max {
+            color: #b0c2db;
+        }
+        .panel textarea {
+            flex: 1;
+            width: 100%;
+            min-height: 200px;
+            border: none;
+            background: transparent;
+            resize: vertical;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #0b1e33;
+            font-family: inherit;
+            padding: 4px 0;
+            outline: none;
+        }
+        .panel textarea::placeholder {
+            color: #b0c2db;
+        }
+        .panel-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            border-top: 1px solid #eef2f9;
+            padding-top: 12px;
+        }
+        .panel-footer .hint {
+            font-size: 13px;
+            color: #889fc0;
+        }
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .panel.drag-over {
+            border-color: #1e5b9c;
+            background: #eaf1fd;
+        }
+        .divider {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+        .btn-convert {
+            width: 60px;
+            height: 60px;
+            border-radius: 60px;
+            background: #1e5b9c;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 4px 14px rgba(30, 91, 156, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-convert:hover:not(:disabled) {
+            background: #164a7e;
+            transform: scale(1.04);
+            box-shadow: 0 6px 20px rgba(30, 91, 156, 0.3);
+        }
+        .btn-convert:active:not(:disabled) {
+            transform: scale(0.94);
+        }
+        .btn-convert:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a2e4a;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            background: #b13a3a;
+        }
+        .toast.success {
+            background: #1f8b4c;
+        }
+        @media (max-width: 820px) {
+            .app {
+                padding: 24px 18px 30px;
+            }
+            .translator {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .divider {
+                flex-direction: row;
+                padding: 4px 0;
+            }
+            .btn-convert {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
+            }
+            .btn-convert .arrow {
+                transform: rotate(90deg);
+            }
+            .btn-convert:hover .arrow {
+                transform: rotate(90deg) translateX(3px);
+            }
+            .panel {
+                min-height: 200px;
+            }
+            .panel textarea {
+                min-height: 120px;
+            }
+            .key-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .key-actions {
+                justify-content: flex-start;
+            }
+        }
+        @media (max-width: 480px) {
+            .app {
+                padding: 16px 12px 24px;
+                border-radius: 24px;
+            }
+            .panel {
+                padding: 14px 14px 16px;
+                min-height: 160px;
+            }
+            .panel textarea {
+                min-height: 90px;
+                font-size: 15px;
+            }
+            .key-textarea {
+                font-size: 12px;
+                min-height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast"></div>
+    <div class="app">
+        <header class="app-header">
+            <div class="app-title">
+                <h1>🔓 解密器 <span class="badge">RSA‑OAEP + AES‑GCM</span></h1>
+            </div>
+            <button class="btn-key danger" id="clearKeyBtn">✕ 清除私钥</button>
+        </header>
+
+        <!-- 私钥输入（使用 textarea，支持拖拽） -->
+        <div class="key-section" id="keySection">
+            <div class="key-label"><span>🔑</span> 私钥 (粘贴或拖拽 JSON)</div>
+            <textarea class="key-textarea" id="privKeyInput" spellcheck="false" placeholder="在此粘贴私钥 JSON…">等待输入…</textarea>
+            <div class="key-actions">
+                <button class="btn-key primary" id="importBtn">📥 导入</button>
+                <span class="status" id="keyStatus" style="color:#b13a3a;">未加载</span>
+            </div>
+        </div>
+
+        <!-- 翻译器 -->
+        <div class="translator">
+            <div class="panel" id="inputPanel">
+                <div class="panel-header">
+                    <label for="inputText">📝 密文 (Base64)</label>
+                    <span class="count"><span id="inputCount">0</span><span class="max"> / —</span></span>
+                </div>
+                <textarea id="inputText" placeholder="粘贴从加密器得到的 Base64 密文，或拖入 txt 文件" spellcheck="false"></textarea>
+                <div class="panel-footer">
+                    <div class="panel-actions">
+                        <button class="btn-key" id="inputFileBtn">📂 选择文件</button>
+                        <button class="btn-key" id="copyInputBtn">📝 复制</button>
+                        <button class="btn-key" id="downloadInputBtn">📥 下载</button>
+                    </div>
+                    <span class="hint">完整密文 · 可拖入 txt 文件</span>
+                    <input type="file" id="inputFile" accept=".txt,.text,.md,.log,.csv,.json" style="display:none" />
+                </div>
+            </div>
+
+            <div class="divider">
+                <button class="btn-convert" id="convertBtn" disabled>
+                    <span class="arrow">→</span>
+                </button>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <label for="outputText">📤 原文</label>
+                    <span class="count"><span id="outputCount">0</span><span class="max"> / —</span></span>
+                </div>
+                <textarea id="outputText" placeholder="解密后的原文将显示在这里…" spellcheck="false" readonly></textarea>
+                <div class="panel-footer">
+                    <div class="panel-actions">
+                        <button class="btn-key" id="copyOutputBtn">📝 复制</button>
+                        <button class="btn-key" id="downloadOutputBtn">📥 下载</button>
+                    </div>
+                    <span class="hint">解密结果</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  解密器 — 私钥输入为 textarea，支持拖拽上传
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const inputText = $('inputText');
+        const outputText = $('outputText');
+        const convertBtn = $('convertBtn');
+        const privKeyInput = $('privKeyInput');
+        const importBtn = $('importBtn');
+        const clearBtn = $('clearKeyBtn');
+        const keyStatus = $('keyStatus');
+        const inputCount = $('inputCount');
+        const outputCount = $('outputCount');
+        const toast = $('toast');
+        const inputFileBtn = $('inputFileBtn');
+        const inputFile = $('inputFile');
+        const copyInputBtn = $('copyInputBtn');
+        const downloadInputBtn = $('downloadInputBtn');
+        const copyOutputBtn = $('copyOutputBtn');
+        const downloadOutputBtn = $('downloadOutputBtn');
+        const inputPanel = $('inputPanel');
+
+        let privateKeyCrypto = null;
+        let privateKeyJwk = null;
+        let toastTimer = null;
+
+        function showToast(msg, type = 'info', duration = 2800) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toast.textContent = msg;
+            toast.className = 'toast';
+            if (type === 'error') toast.classList.add('error');
+            else if (type === 'success') toast.classList.add('success');
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                toastTimer = null;
+            }, duration);
+        }
+
+        function abToBase64(ab) {
+            const bytes = new Uint8Array(ab);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+        function base64ToAb(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        function strToAb(str) { return new TextEncoder().encode(str); }
+        function abToStr(ab) { return new TextDecoder().decode(ab); }
+
+        function isJsonString(str) {
+            try { JSON.parse(str); return true; } catch { return false; }
+        }
+
+        async function importPrivateKey(jwkJson) {
+            try {
+                const jwk = typeof jwkJson === 'string' ? JSON.parse(jwkJson) : jwkJson;
+                const key = await crypto.subtle.importKey(
+                    'jwk', jwk,
+                    { name: 'RSA-OAEP', hash: 'SHA-256' },
+                    true,
+                    ['decrypt']
+                );
+                return key;
+            } catch (err) {
+                throw new Error('私钥格式无效: ' + err.message);
+            }
+        }
+
+        async function hybridDecrypt(privateKey, ciphertextBase64) {
+            let payload;
+            try {
+                payload = JSON.parse(atob(ciphertextBase64));
+            } catch {
+                throw new Error('密文格式错误，请检查是否完整复制');
+            }
+            const { ek, iv, ct } = payload;
+            if (!ek || !iv || !ct) throw new Error('密文缺少必要字段');
+            const encryptedKey = base64ToAb(ek);
+            const rawAesKey = await crypto.subtle.decrypt(
+                { name: 'RSA-OAEP' },
+                privateKey,
+                encryptedKey
+            );
+            const aesKey = await crypto.subtle.importKey(
+                'raw', rawAesKey,
+                { name: 'AES-GCM' },
+                true,
+                ['decrypt']
+            );
+            const ivBytes = base64ToAb(iv);
+            const ciphertext = base64ToAb(ct);
+            const plaintext = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: new Uint8Array(ivBytes) },
+                aesKey,
+                ciphertext
+            );
+            return abToStr(plaintext);
+        }
+
+        function updateUI() {
+            const hasKey = !!privateKeyCrypto;
+            convertBtn.disabled = !hasKey;
+            keyStatus.textContent = hasKey ? '✅ 已加载' : '⚠ 请导入私钥';
+            keyStatus.style.color = hasKey ? '#1f8b4c' : '#b13a3a';
+            if (!hasKey && !outputText.value) {
+                outputText.value = '⚠ 请先导入私钥';
+                outputText.style.color = '#b0a0a0';
+            } else if (hasKey && outputText.value === '⚠ 请先导入私钥') {
+                outputText.value = '';
+                outputText.style.color = '';
+            }
+            updateCounts();
+        }
+
+        function updateCounts() {
+            inputCount.textContent = inputText.value.length;
+            outputCount.textContent = outputText.value.length;
+        }
+
+        async function performDecrypt() {
+            const ciphertext = inputText.value.trim();
+            if (!ciphertext) { showToast('⚠ 请输入密文', 'error'); return; }
+            if (!privateKeyCrypto) { showToast('⚠ 请先导入私钥', 'error'); return; }
+            try {
+                convertBtn.disabled = true;
+                convertBtn.textContent = '⏳';
+                const plaintext = await hybridDecrypt(privateKeyCrypto, ciphertext);
+                outputText.value = plaintext;
+                outputText.style.color = '';
+                showToast('✅ 解密成功', 'success');
+                updateCounts();
+            } catch (err) {
+                showToast('❌ 解密失败: ' + err.message, 'error');
+                outputText.value = '⚠ 解密失败，请检查密文和私钥是否正确';
+                outputText.style.color = '#b13a3a';
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = '<span class="arrow">→</span>';
+                updateUI();
+            }
+        }
+
+        // ---- 导入私钥（从 textarea 读取） ----
+        async function importFromInput() {
+            const raw = privKeyInput.value.trim();
+            if (!raw || raw === '等待输入…' || raw === '在此粘贴私钥 JSON…') {
+                showToast('请先粘贴或拖入私钥 JSON', 'error');
+                return;
+            }
+            try {
+                const key = await importPrivateKey(raw);
+                privateKeyCrypto = key;
+                privateKeyJwk = JSON.parse(raw);
+                privKeyInput.value = JSON.stringify(privateKeyJwk, null, 2);
+                localStorage.setItem('decryptor_privateKey', JSON.stringify(privateKeyJwk));
+                updateUI();
+                showToast('✅ 私钥导入成功', 'success');
+            } catch (err) {
+                showToast('❌ ' + err.message, 'error');
+            }
+        }
+
+        // ---- 清除 ----
+        clearBtn.addEventListener('click', () => {
+            privateKeyCrypto = null;
+            privateKeyJwk = null;
+            privKeyInput.value = '等待输入…';
+            localStorage.removeItem('decryptor_privateKey');
+            updateUI();
+            showToast('已清除私钥', 'info');
+        });
+
+        importBtn.addEventListener('click', importFromInput);
+
+        // ---- 自动加载保存的私钥 ----
+        (async function loadSaved() {
+            const saved = localStorage.getItem('decryptor_privateKey');
+            if (saved) {
+                try {
+                    const key = await importPrivateKey(saved);
+                    privateKeyCrypto = key;
+                    privateKeyJwk = JSON.parse(saved);
+                    privKeyInput.value = JSON.stringify(privateKeyJwk, null, 2);
+                    updateUI();
+                    showToast('🔑 已自动加载保存的私钥', 'success');
+                } catch { localStorage.removeItem('decryptor_privateKey'); }
+            }
+        })();
+
+        // ---- 拖拽上传 ----
+        const keySection = document.getElementById('keySection');
+        keySection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            privKeyInput.classList.add('drag-over');
+        });
+        keySection.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            privKeyInput.classList.remove('drag-over');
+        });
+        keySection.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            privKeyInput.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length === 0) return;
+            const file = files[0];
+            if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                showToast('请拖入 JSON 文件', 'error');
+                return;
+            }
+            try {
+                const text = await file.text();
+                if (!isJsonString(text)) {
+                    showToast('文件内容不是有效 JSON', 'error');
+                    return;
+                }
+                privKeyInput.value = text;
+                await importFromInput();
+            } catch (err) {
+                showToast('读取文件失败: ' + err.message, 'error');
+            }
+        });
+
+        // ---- 事件绑定 ----
+        inputText.addEventListener('input', updateCounts);
+        outputText.addEventListener('input', updateCounts);
+        convertBtn.addEventListener('click', performDecrypt);
+        inputText.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                performDecrypt();
+            }
+        });
+
+        // ---- 文本复制 ----
+        function copyText(text, successMsg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📝 ' + successMsg, 'success');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('📝 ' + successMsg, 'success');
+            });
+        }
+
+        // ---- 文本下载（保存为 .txt） ----
+        function downloadText(text, filename) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ---- 文件上传（按钮选择 + 拖拽） ----
+        const TEXT_EXTS = ['.txt', '.text', '.md', '.log', '.csv', '.json'];
+        function isTextFile(file) {
+            if (file.type && (file.type.startsWith('text/') || file.type === 'application/json')) return true;
+            return TEXT_EXTS.some(ext => file.name.toLowerCase().endsWith(ext));
+        }
+        async function loadFileToInput(file) {
+            if (!file) return;
+            if (!isTextFile(file)) {
+                showToast('请选择文本文件（.txt / .text / .md / .log / .csv / .json）', 'error');
+                return;
+            }
+            try {
+                const text = await file.text();
+                inputText.value = text;
+                updateCounts();
+                showToast('📂 已载入文件：' + file.name, 'success');
+            } catch (err) {
+                showToast('读取文件失败: ' + err.message, 'error');
+            }
+        }
+
+        inputFileBtn.addEventListener('click', () => inputFile.click());
+        inputFile.addEventListener('change', (e) => loadFileToInput(e.target.files && e.target.files[0]));
+        inputPanel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            inputPanel.classList.add('drag-over');
+        });
+        inputPanel.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            inputPanel.classList.remove('drag-over');
+        });
+        inputPanel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            inputPanel.classList.remove('drag-over');
+            loadFileToInput(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+        });
+
+        // ---- 复制 / 下载按钮 ----
+        copyInputBtn.addEventListener('click', () => {
+            if (!inputText.value) { showToast('⚠ 输入框为空', 'error'); return; }
+            copyText(inputText.value, '密文已复制');
+        });
+        downloadInputBtn.addEventListener('click', () => {
+            if (!inputText.value) { showToast('⚠ 输入框为空', 'error'); return; }
+            downloadText(inputText.value, '密文.txt');
+            showToast('📥 密文已下载', 'success');
+        });
+        copyOutputBtn.addEventListener('click', () => {
+            if (!outputText.value || outputText.value.startsWith('⚠')) { showToast('⚠ 暂无可用内容', 'error'); return; }
+            copyText(outputText.value, '原文已复制');
+        });
+        downloadOutputBtn.addEventListener('click', () => {
+            if (!outputText.value || outputText.value.startsWith('⚠')) { showToast('⚠ 暂无可用内容', 'error'); return; }
+            downloadText(outputText.value, '原文.txt');
+            showToast('📥 原文已下载', 'success');
+        });
+
+        privKeyInput.addEventListener('input', () => {
+            const raw = privKeyInput.value.trim();
+            if (raw && isJsonString(raw)) {
+                keyStatus.textContent = '⚠ 检测到 JSON，点击“导入”';
+                keyStatus.style.color = '#b0a0a0';
+            } else {
+                keyStatus.textContent = '⚠ 请导入私钥';
+                keyStatus.style.color = '#b13a3a';
+            }
+        });
+
+        updateUI();
+        console.log('🔓 解密器已启动 (私钥输入框为 textarea，支持直接粘贴和拖拽)');
+    </script>
+</body>
+</html>
