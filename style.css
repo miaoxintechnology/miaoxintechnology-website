@@ -148,8 +148,8 @@ blockquote { margin: 0; }
 }
 .logo svg { display: block; }
 .logo-cat { height: 46px; width: auto; }
-.logo-cn { height: 28px; width: auto; }
-.logo-en { height: 26px; width: auto; margin-left: 2px; }
+.logo-cn { height: 30px; width: auto; }
+.logo-en { height: 28px; width: auto; margin-left: 2px; }
 
 .nav {
   display: flex;
@@ -875,8 +875,8 @@ h2 {
   gap: 1.5rem 2.5rem;
 }
 .logo-white .logo-cat { height: 36px; }
-.logo-white .logo-cn { height: 23px; }
-.logo-white .logo-en { height: 20px; }
+.logo-white .logo-cn { height: 25px; }
+.logo-white .logo-en { height: 22px; }
 .footer-nav {
   display: flex;
   flex-wrap: wrap;
@@ -1076,8 +1076,8 @@ html::-webkit-scrollbar {
   .header-inner { padding: 10px 0; }
 
   .logo-cat { height: 34px; }
-  .logo-cn { height: 22px; }
-  .logo-en { height: 19px; }
+  .logo-cn { height: 24px; }
+  .logo-en { height: 21px; }
 
   .hero { padding: 72px 0; }
   .hero h1 { margin-top: 18px; }
@@ -1105,8 +1105,8 @@ html::-webkit-scrollbar {
 
 @media (max-width: 420px) {
   .logo-cat { height: 32px; }
-  .logo-cn { height: 21px; }
-  .logo-en { height: 18px; }
+  .logo-cn { height: 23px; }
+  .logo-en { height: 20px; }
   .logo { gap: 8px; }
   .code-tabs { padding: 6px 6px 0; }
   .code-tab { font-size: 11px; padding: 8px 10px; }
@@ -1115,8 +1115,8 @@ html::-webkit-scrollbar {
 
 @media (max-width: 360px) {
   .logo-cat { height: 28px; }
-  .logo-cn { height: 19px; }
-  .logo-en { height: 16px; }
+  .logo-cn { height: 21px; }
+  .logo-en { height: 18px; }
   .hero h1 { font-size: 2.1rem; }
   .hero-en { font-size: 1.05rem; }
 }
