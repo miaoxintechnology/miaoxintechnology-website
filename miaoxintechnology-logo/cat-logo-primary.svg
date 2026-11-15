@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Cat logo — primary</title>
+  <desc id="desc">Primary cat mark with a single continuous outline: open circular frame connected to the head and neck, with whiskers and paw prints. Black on transparent background.</desc>
+  <g fill="none" stroke="#000000" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 160.60 377.80 C 137.20 349.00 124.60 307.60 124.60 260.80 C 124.60 228.40 130.90 196.00 144.40 169.00 L 175.00 115.00 C 178.60 107.80 187.60 107.80 191.20 115.00 L 218.20 163.60 C 229.00 179.80 241.60 188.80 256.00 190.60 C 270.40 188.80 283.00 179.80 293.80 163.60 L 320.80 115.00 C 324.40 107.80 333.40 107.80 337.00 115.00 L 367.60 169.00 C 381.10 196.00 387.40 228.40 387.40 260.80 C 387.40 307.60 374.80 349.00 351.40 377.80 V 450.24 A 220 220 0 1 0 160.60 450.24 V 377.80 Z"/>
+    <g transform="translate(256 250) scale(0.9) translate(-256 -250)">
+      <path d="M 230 318 Q 256 346 282 318" stroke-width="22.2222"/>
+      <g fill="#000000" stroke="none">
+        <circle cx="194" cy="266" r="14"/>
+        <circle cx="318" cy="266" r="14"/>
+      </g>
+    </g>
+  </g>
+  <g fill="#000000" stroke="none">
+    <g transform="translate(215 462) scale(1.7)">
+      <circle cx="-14" cy="-13" r="5.5"/><circle cx="-5" cy="-19" r="5.5"/><circle cx="5" cy="-19" r="5.5"/><circle cx="14" cy="-13" r="5.5"/>
+      <path d="M -13 0 C -13 10 -6 16 0 16 C 6 16 13 10 13 0 C 13 -6 6 -7 0 -3 C -6 -7 -13 -6 -13 0 Z"/>
+    </g>
+    <g transform="translate(297 462) scale(1.7)">
+      <circle cx="-14" cy="-13" r="5.5"/><circle cx="-5" cy="-19" r="5.5"/><circle cx="5" cy="-19" r="5.5"/><circle cx="14" cy="-13" r="5.5"/>
+      <path d="M -13 0 C -13 10 -6 16 0 16 C 6 16 13 10 13 0 C 13 -6 6 -7 0 -3 C -6 -7 -13 -6 -13 0 Z"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#000000" stroke-width="12" stroke-linecap="round">
+    <path d="M 128 280 Q 100 270 74 266"/>
+    <path d="M 126 300 Q 96 296 74 300"/>
+    <path d="M 128 320 Q 100 328 82 334"/>
+    <path d="M 384 280 Q 412 270 438 266"/>
+    <path d="M 386 300 Q 416 296 438 300"/>
+    <path d="M 384 320 Q 412 328 430 334"/>
+  </g>
+</svg>
