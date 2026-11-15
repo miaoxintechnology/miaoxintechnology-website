@@ -1,0 +1,241 @@
+/* ============================================================
+   404 页面样式
+   基于 style.css 的设计语言：紫色系、18px 圆角、描边卡片、
+   LXGWZhenKai 主标题、Ubuntu Mono 点缀。
+   仅在 404 页加载，不影响主页。
+   ============================================================ */
+
+/* ---------- 首屏 ---------- */
+.error-inner {
+  align-items: center;
+}
+
+/* 标题保持一行不折行：字号上限按 1440 下左栏宽度反推 */
+.error-hero .error-title {
+  font-size: clamp(2.5rem, 5.2vw, 4rem);
+}
+
+/* 次要按钮：白描边幽灵按钮（首屏紫色背景上用） */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: 13px 26px;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font);
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease,
+    box-shadow .2s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, .14);
+  border-color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px -14px rgba(20, 0, 50, .55);
+}
+
+/* 返回上一页 */
+.error-back-row {
+  margin-top: 18px;
+}
+.error-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .82);
+  font-family: var(--font);
+  font-size: .82rem;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.error-back svg { flex: none; opacity: .85; }
+/* .error-back 自带 display，UA 的 [hidden] 优先级不够，显式兜底 */
+.error-back[hidden] { display: none; }
+.error-back:hover { color: #fff; }
+
+/* 首屏信息行里的等宽错误码 */
+.error-code {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .72);
+  font-family: "Ubuntu Mono", var(--mono);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  vertical-align: 1px;
+}
+
+/* 深色背景上改用白色焦点环，保证可见 */
+.error-hero :focus-visible {
+  outline-color: #fff;
+}
+
+/* ---------- 主视觉插画 ---------- */
+.error-art {
+  width: min(100%, 460px);
+  justify-self: center;
+}
+.error-art-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.error-art-ghost {
+  font-family: "Ubuntu Mono", var(--mono);
+  font-size: 96px;
+  font-weight: 400;
+  letter-spacing: .04em;
+  fill: #ffffff;
+  fill-opacity: .1;
+  user-select: none;
+}
+.error-art-stamp {
+  font-family: "Ubuntu Mono", var(--mono);
+  font-size: 21px;
+  letter-spacing: .08em;
+  fill: #7c3aed;
+  fill-opacity: .72;
+}
+
+/* 飘走的纸页轻微浮动 */
+.error-drift {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: error-drift 7s ease-in-out infinite;
+}
+@keyframes error-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-9px) rotate(2.5deg); }
+}
+
+/* ---------- 换个入口 ---------- */
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 22px 20px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.guide-card:hover {
+  border-color: #d9c9f7;
+  transform: translateY(-4px);
+  box-shadow: 0 22px 40px -26px rgba(76, 29, 149, .34);
+}
+/* style.css 里 `.js .reveal.is-visible { transform: none }` 的优先级高于
+   `.guide-card:hover`，会吃掉 hover 位移；这里显式提高优先级让浮动生效。 */
+.error-guide .guide-card.is-visible:hover {
+  transform: translateY(-4px);
+}
+.guide-no {
+  color: var(--purple-500);
+  font-family: "Ubuntu Mono", var(--mono);
+  font-size: .72rem;
+  letter-spacing: .16em;
+}
+.guide-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 12px 0 16px;
+  border-radius: 12px;
+  background: var(--purple-100);
+  color: var(--purple-600);
+}
+.guide-icon svg { display: block; width: 20px; height: 20px; }
+.guide-card h3 {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.guide-card p {
+  margin-top: 6px;
+  color: var(--body);
+  font-size: .86rem;
+  line-height: 1.62;
+}
+.guide-go {
+  margin-top: auto;
+  padding-top: 16px;
+  color: #9b93ad;
+  transition: color .25s ease, transform .25s ease;
+}
+.guide-go svg { display: block; }
+.guide-card:hover .guide-go {
+  color: var(--purple-600);
+  transform: translate(2px, -2px);
+}
+
+/* 收尾引言 */
+.error-quote {
+  max-width: 780px;
+  margin: clamp(2.5rem, 4vw, 3.5rem) auto 0;
+  padding: 26px 20px;
+  border-top: 1px dashed #d9c9f7;
+  border-bottom: 1px dashed #d9c9f7;
+  color: var(--purple-700);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+/* ---------- 响应式 ---------- */
+/* 平板 / 窄桌面：5 张卡排成 3+2，第二行两张居中 */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .guide-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .guide-card { grid-column: span 2; }
+  .guide-card:nth-child(4) { grid-column: 2 / span 2; }
+  .guide-card:nth-child(5) { grid-column: 4 / span 2; }
+}
+
+@media (max-width: 980px) {
+  .error-inner { grid-template-columns: minmax(0, 1fr); }
+  .error-art { width: 100%; max-width: 440px; }
+  .error-hero .error-title { font-size: clamp(2.4rem, 6.5vw, 3.4rem); }
+}
+
+@media (max-width: 760px) {
+  .guide-grid { grid-template-columns: 1fr; }
+  .guide-card { grid-column: auto; }
+  .error-art { max-width: 340px; }
+  .btn-ghost { padding: 12px 22px; font-size: .9rem; }
+  .error-code { margin-left: 8px; }
+}
+
+@media (max-width: 420px) {
+  .error-hero .error-title { font-size: 2.1rem; }
+  .error-art { max-width: 280px; }
+  .error-code { margin: 7px 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-drift { animation: none; }
+  .guide-card:hover,
+  .error-guide .guide-card.is-visible:hover { transform: none; }
+}
